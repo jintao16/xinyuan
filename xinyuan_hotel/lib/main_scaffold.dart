@@ -179,7 +179,6 @@ class _GlassTabBar extends StatelessWidget {
             children: List.generate(items.length, (i) {
               return Expanded(
                 child: GestureDetector(
-                  key: ValueKey('tab_$i'),
                   onTap: () => onTap(i),
                   behavior: HitTestBehavior.opaque,
                   child: items[i],

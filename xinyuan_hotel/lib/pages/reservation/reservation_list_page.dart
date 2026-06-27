@@ -67,7 +67,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
                 // 新建按钮
                 ElevatedButton.icon(
-                  key: const ValueKey('list_btn_new_reservation'),
                   onPressed: () async {
                     await Navigator.push(context, MaterialPageRoute(builder: (_) => const ReservationFormPage()));
                     setState(() {});

@@ -224,7 +224,6 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             // 客户信息
             _FieldLabel('客户称呼'),
             TextFormField(
-              key: const ValueKey('form_field_customer_title'),
               initialValue: _customerTitle,
               enabled: !isTerminal,
               decoration: const InputDecoration(hintText: '如：张先生、李女士'),
@@ -302,7 +301,6 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             // 保存按钮
             if (!isTerminal)
               ElevatedButton(
-                key: const ValueKey('form_btn_save'),
                 onPressed: _saving ? null : _onSave,
                 child: _saving
                     ? const SizedBox(height: 20, width: 20, child: CupertinoActivityIndicator())

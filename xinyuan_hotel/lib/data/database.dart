@@ -175,18 +175,4 @@ class DatabaseHelper {
     final dbPath = p.join(docsDir.path, _dbName);
     await databaseFactory.deleteDatabase(dbPath);
   }
-
-  /// 重置到初始预置数据状态（测试用）
-  /// 清空所有表后重新执行 _seedInitialData
-  Future<void> resetToSeed() async {
-    final db = await database;
-    await db.transaction((txn) async {
-      await txn.delete('reservation');
-      await txn.delete('dining_table');
-      await txn.delete('quick_time_slot');
-      await txn.delete('area');
-      await txn.delete('floor');
-    });
-    await _seedInitialData(db);
-  }
 }

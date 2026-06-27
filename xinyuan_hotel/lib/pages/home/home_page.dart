@@ -103,7 +103,6 @@ class HomePage extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    key: const ValueKey('home_btn_new_reservation'),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReservationFormPage())),
                     icon: const Icon(CupertinoIcons.add, size: 18),
                     label: const Text('新建预订'),
@@ -112,7 +111,6 @@ class HomePage extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
-                    key: const ValueKey('home_btn_availability'),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AvailabilityPage())),
                     icon: const Icon(CupertinoIcons.search, size: 18),
                     label: const Text('查询空闲'),

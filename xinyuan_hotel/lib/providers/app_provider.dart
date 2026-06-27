@@ -231,12 +231,6 @@ class AppProvider extends ChangeNotifier {
     return result;
   }
 
-  /// 测试用：重置数据库到初始预置数据
-  Future<void> resetToSeedForTesting() async {
-    await _dbHelper.resetToSeed();
-    await refreshAll();
-  }
-
   // ===== 辅助 =====
 
   /// 获取预订的显示标签
