@@ -141,9 +141,10 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
+                      const SizedBox(width: 4),
                       for (final s in p.timeSlots) ...[
                         FilterPill(
-                          label: '${s.name} ${s.startTime}-${s.endTime}',
+                          label: s.name,
                           active: _startTime == s.startTime && _endTime == s.endTime,
                           onTap: isTerminal
                               ? null
@@ -432,7 +433,7 @@ class _ModeTab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: BoxDecoration(
           color: active ? AppTheme.accent.withOpacity(0.1) : AppTheme.glassBgSoft,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -440,10 +441,16 @@ class _ModeTab extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18, color: active ? AppTheme.accent : AppTheme.textSecondary),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: active ? AppTheme.accent : AppTheme.textPrimary)),
+            Flexible(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: active ? AppTheme.accent : AppTheme.textPrimary)),
+            ),
           ],
         ),
       ),
@@ -594,14 +601,26 @@ class _TableSelectorState extends State<_TableSelector> {
                         color: selected ? AppTheme.accent : AppTheme.glassBorder,
                       ),
                     ),
-                    child: Text(
-                      '${t.table.name}\n${t.table.seats}人',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : (disabled ? AppTheme.textTertiary : AppTheme.textPrimary),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(t.table.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: selected ? Colors.white : (disabled ? AppTheme.textTertiary : AppTheme.textPrimary),
+                            )),
+                        const SizedBox(height: 2),
+                        Text('${t.table.seats}人',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: selected ? Colors.white.withOpacity(0.85) : (disabled ? AppTheme.textTertiary : AppTheme.textSecondary),
+                            )),
+                      ],
                     ),
                   ),
                 );
@@ -718,18 +737,25 @@ class _RoomSelectorState extends State<_RoomSelector> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(a.area.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
                                       color: selected ? Colors.white : (disabled ? AppTheme.textTertiary : AppTheme.textPrimary))),
                               Text('${a.tables.length}桌 · 共${seatsSum}位',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 12,
                                       color: selected ? Colors.white.withOpacity(0.85) : AppTheme.textSecondary)),
                             ],
                           ),
                         ),
-                        if (disabled && !a.isRoomFree)
+                        if (disabled && !a.isRoomFree) ...[
+                          const SizedBox(width: 8),
                           const Text('占用', style: TextStyle(fontSize: 11, color: AppTheme.danger, fontWeight: FontWeight.w600)),
+                        ],
                       ],
                     ),
                   ),

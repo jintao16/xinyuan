@@ -28,12 +28,16 @@ class StatusTag extends StatelessWidget {
               decoration: BoxDecoration(color: status.color, shape: BoxShape.circle),
             ),
           if (showDot) const SizedBox(width: 4),
-          Text(
-            status.label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: status.color,
+          Flexible(
+            child: Text(
+              status.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: status.color,
+              ),
             ),
           ),
         ],
@@ -60,14 +64,21 @@ class PageHeader extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(subtitle, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textSecondary)),
+                Text(subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.textSecondary)),
                 const SizedBox(height: 4),
-                Text(title, style: Theme.of(context).textTheme.displayLarge),
+                Text(title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28)),
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          if (trailing != null) Padding(padding: const EdgeInsets.only(left: 8, bottom: 4), child: trailing!),
         ],
       ),
     );
@@ -91,7 +102,11 @@ class EmptyState extends StatelessWidget {
         children: [
           Text(icon, style: const TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
-          Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textTertiary), textAlign: TextAlign.center),
+          Text(text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textTertiary),
+              textAlign: TextAlign.center),
           if (onAction != null && actionLabel != null) ...[
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -141,6 +156,8 @@ class FilterPill extends StatelessWidget {
         ),
         child: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

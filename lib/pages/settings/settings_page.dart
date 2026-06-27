@@ -88,8 +88,12 @@ class SettingsPage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: const [
-              Text('鑫源大酒店 · 餐饮预订系统', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              Text('鑫源大酒店 · 餐饮预订系统',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               SizedBox(height: 6),
               Text('版本 1.0.0', style: TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
               SizedBox(height: 4),
@@ -165,18 +169,31 @@ class _MenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       leading: Container(
         width: 32,
         height: 32,
         decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 18, color: color),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-      subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)) : null,
+      title: Text(title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+      subtitle: subtitle != null
+          ? Text(subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary))
+          : null,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (trailing != null) Text(trailing!, style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+          if (trailing != null)
+            Text(trailing!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
           const SizedBox(width: 4),
           const Icon(CupertinoIcons.chevron_right, size: 14, color: AppTheme.textTertiary),
         ],

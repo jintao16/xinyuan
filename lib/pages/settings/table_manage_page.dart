@@ -195,14 +195,22 @@ class _TableTile extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  Text(table.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  Flexible(
+                    child: Text(table.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  ),
                   const SizedBox(width: 8),
-                  Text('${table.seats}人', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                  Text('${table.seats}人',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
-            IconButton(icon: const Icon(CupertinoIcons.pencil, size: 16), onPressed: onEdit),
-            IconButton(icon: const Icon(CupertinoIcons.delete, size: 16, color: AppTheme.danger), onPressed: onDelete),
+            IconButton(icon: const Icon(CupertinoIcons.pencil, size: 18), onPressed: onEdit),
+            IconButton(icon: const Icon(CupertinoIcons.delete, size: 18, color: AppTheme.danger), onPressed: onDelete),
           ],
         ),
       ),

@@ -237,7 +237,9 @@ class _FloorSection extends StatelessWidget {
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
               floor.floor.name + (floor.floor.isMain ? ' · 主楼' : ''),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.02),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.02),
             ),
           ),
           // 区域
@@ -269,15 +271,20 @@ class _AreaCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
                 Icon(isRoom ? CupertinoIcons.house_fill : CupertinoIcons.square_grid_2x2,
                     size: 16, color: AppTheme.accent),
                 const SizedBox(width: 6),
-                Text(area.area.name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                const Spacer(),
+                Expanded(
+                  child: Text(area.area.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -286,6 +293,8 @@ class _AreaCard extends StatelessWidget {
                   ),
                   child: Text(
                     isRoom ? (area.isRoomFree ? '空闲' : '占用') : '空闲 $freeCount/$totalCount',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -301,14 +310,18 @@ class _AreaCard extends StatelessWidget {
               Opacity(
                 opacity: area.isRoomFree ? 1 : 0.5,
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Text(
                         area.tables.map((t) => '${t.table.name}(${t.table.seats}位)').join(' · '),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                       ),
                     ),
-                    if (area.isRoomFree)
+                    if (area.isRoomFree) ...[
+                      const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () => onBookArea(area.area.id!),
                         style: ElevatedButton.styleFrom(
@@ -317,6 +330,7 @@ class _AreaCard extends StatelessWidget {
                         ),
                         child: const Text('预订包厢'),
                       ),
+                    ],
                   ],
                 ),
               )
@@ -330,19 +344,26 @@ class _AreaCard extends StatelessWidget {
                   return GestureDetector(
                     onTap: disabled ? null : () => onBookTable(t.table.id!),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      constraints: const BoxConstraints(minWidth: 56),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
                         color: disabled ? AppTheme.textTertiary.withOpacity(0.1) : AppTheme.glassBgSoft,
                         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         border: Border.all(color: AppTheme.glassBorder),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(t.table.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w700,
                                   color: disabled ? AppTheme.textTertiary : AppTheme.textPrimary)),
+                          const SizedBox(height: 2),
                           Text('${t.table.seats}人',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 11, color: disabled ? AppTheme.textTertiary : AppTheme.textSecondary)),
                         ],
                       ),

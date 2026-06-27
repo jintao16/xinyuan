@@ -231,11 +231,14 @@ class _TabItem extends StatelessWidget {
     }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 24, color: isActive ? AppTheme.accent : AppTheme.textTertiary),
+        Icon(icon, size: 22, color: isActive ? AppTheme.accent : AppTheme.textTertiary),
         const SizedBox(height: 2),
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,

@@ -130,70 +130,85 @@ class _ReservationTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
-        padding: const EdgeInsets.all(16),
-        child: Stack(
-          children: [
-            if (isUpcoming)
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(width: 4, decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2))),
-              ),
-            GestureDetector(
-              onTap: onTap,
-              child: Opacity(
-                opacity: isCancelled ? 0.6 : 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${r.startTime} — ${r.endTime}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent)),
-                            const SizedBox(height: 4),
-                            Text(
-                              r.customerTitle.isEmpty ? '未留名' : r.customerTitle,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                                decoration: isCancelled ? TextDecoration.lineThrough : null,
-                                fontStyle: isCancelled ? FontStyle.italic : null,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '$label${r.guestCount != null ? ' · ${r.guestCount}人' : ''}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w500,
-                                decoration: isCancelled ? TextDecoration.lineThrough : null,
-                                fontStyle: isCancelled ? FontStyle.italic : null,
-                              ),
-                            ),
-                            if (r.customerPhone.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text('📞 ${r.customerPhone}', style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
-                            ],
-                            if (r.remark.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text('📝 ${r.remark}', style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
-                            ],
-                          ],
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isUpcoming)
+                Container(
+                  width: 4,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2)),
+                )
+              else
+                const SizedBox(width: 14),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTap,
+                  child: Opacity(
+                    opacity: isCancelled ? 0.6 : 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${r.startTime} — ${r.endTime}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent)),
+                        const SizedBox(height: 4),
+                        Text(
+                          r.customerTitle.isEmpty ? '未留名' : r.customerTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            decoration: isCancelled ? TextDecoration.lineThrough : null,
+                            fontStyle: isCancelled ? FontStyle.italic : null,
+                          ),
                         ),
-                      ),
-                      StatusTag(status: r.status),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '$label${r.guestCount != null ? ' · ${r.guestCount}人' : ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                            decoration: isCancelled ? TextDecoration.lineThrough : null,
+                            fontStyle: isCancelled ? FontStyle.italic : null,
+                          ),
+                        ),
+                        if (r.customerPhone.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text('📞 ${r.customerPhone}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+                        ],
+                        if (r.remark.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📝 ${r.remark}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Align(
+                alignment: Alignment.topRight,
+                child: StatusTag(status: r.status),
+              ),
+            ],
+          ),
         ),
       ),
     );

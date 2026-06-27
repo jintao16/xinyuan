@@ -166,15 +166,19 @@ class _FloorTile extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(floor.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  Text(floor.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
                   if (floor.isMain)
                     const Text('主楼', style: TextStyle(fontSize: 11, color: AppTheme.accent, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
-            IconButton(icon: const Icon(CupertinoIcons.pencil, size: 16), onPressed: onEdit),
-            IconButton(icon: const Icon(CupertinoIcons.delete, size: 16, color: AppTheme.danger), onPressed: onDelete),
+            IconButton(icon: const Icon(CupertinoIcons.pencil, size: 18), onPressed: onEdit),
+            IconButton(icon: const Icon(CupertinoIcons.delete, size: 18, color: AppTheme.danger), onPressed: onDelete),
           ],
         ),
       ),

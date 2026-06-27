@@ -165,7 +165,9 @@ class _SummarySection extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text('${summary.arrivalRate}%',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.success)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.success)),
             ],
           ),
         ],
@@ -184,10 +186,18 @@ class _Item extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value.toString(), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: color)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Text(value.toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+          ),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+          Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -288,7 +298,10 @@ class _HourlySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('时段分布', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          const Text('时段分布',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
           const SizedBox(height: 16),
           SizedBox(
             height: 140,
@@ -357,7 +370,12 @@ class _TableUsageSection extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      SizedBox(width: 100, child: Text(it.name, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+                      SizedBox(
+                          width: 80,
+                          child: Text(it.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, fontWeight: FontWeight.w600))),
                       const SizedBox(width: 8),
                       Expanded(
                         child: LinearProgressIndicator(
@@ -369,7 +387,13 @@ class _TableUsageSection extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      SizedBox(width: 30, child: Text('${it.count}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent), textAlign: TextAlign.right)),
+                      SizedBox(
+                          width: 36,
+                          child: Text('${it.count}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent),
+                              textAlign: TextAlign.right)),
                     ],
                   ),
                 )),

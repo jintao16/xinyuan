@@ -91,7 +91,10 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text('9时 — 22时 预订分布', style: TextStyle(fontSize: 11, color: AppTheme.textTertiary)),
+                    const Text('9时 — 22时 预订分布',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: AppTheme.textTertiary)),
                   ],
                 ),
               ),
@@ -151,13 +154,22 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GlassContainer(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
         borderRadius: AppTheme.radiusMd,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(value.toString(), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.02)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Text(value.toString(),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.02)),
+            ),
             const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
           ],
         ),
       ),
@@ -178,38 +190,50 @@ class _UpcomingCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
-        padding: const EdgeInsets.all(16),
-        child: Stack(
-          children: [
-            // 左侧高亮条
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(width: 4, decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2))),
-            ),
-            GestureDetector(
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(time, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent, letterSpacing: 0.02)),
-                    const SizedBox(height: 4),
-                    Text(customer, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                    const SizedBox(height: 2),
-                    Text(info, style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
-                  ],
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 左侧高亮条
+              Container(
+                width: 4,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2)),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTap,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(time,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent, letterSpacing: 0.02)),
+                      const SizedBox(height: 4),
+                      Text(customer,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      const SizedBox(height: 2),
+                      Text(info,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const Positioned(
-              top: 0,
-              right: 0,
-              child: StatusTag(status: ReservationStatus.booked),
-            ),
-          ],
+              const SizedBox(width: 8),
+              const Align(
+                alignment: Alignment.topRight,
+                child: StatusTag(status: ReservationStatus.booked),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -230,8 +254,9 @@ class _ReservationCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: Opacity(
             opacity: isCancelled ? 0.6 : 1,
@@ -241,13 +266,19 @@ class _ReservationCard extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('${r.startTime} — ${r.endTime}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent)),
+                      Text('${r.startTime} — ${r.endTime}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent)),
                       const SizedBox(height: 4),
                       Text(
                         r.customerTitle.isEmpty ? '未留名' : r.customerTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary,
                           decoration: isCancelled ? TextDecoration.lineThrough : null,
@@ -257,8 +288,10 @@ class _ReservationCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '$label${r.guestCount != null ? ' · ${r.guestCount}人' : ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w500,
                           decoration: isCancelled ? TextDecoration.lineThrough : null,
@@ -268,6 +301,7 @@ class _ReservationCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 StatusTag(status: r.status),
               ],
             ),
