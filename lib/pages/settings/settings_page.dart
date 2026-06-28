@@ -118,7 +118,7 @@ class SettingsPage extends StatelessWidget {
   }
 
   Future<void> _import(BuildContext context) async {
-    final picked = await FilePicker.platform.pickFiles(withData: true, type: FileType.custom, allowedExtensions: ['json']);
+    final picked = await FilePicker.pickFiles(withData: true, type: FileType.custom, allowedExtensions: ['json']);
     if (picked == null || picked.files.single.bytes == null) return;
     final confirm = await showCupertinoDialog<bool>(
       // ignore: use_build_context_synchronously
