@@ -36,6 +36,7 @@ class MockPathProviderPlatform extends PathProviderPlatform {
   @override
   Future<List<String>?> getExternalStoragePaths({
     bool? removable,
+    StorageDirectory? type,
   }) async => [docsPath];
 }
 
