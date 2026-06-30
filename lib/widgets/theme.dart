@@ -40,7 +40,7 @@ class AppTheme {
         secondary: accentSoft,
         surface: const Color(0xFFFAF7F2),
       ),
-      scaffoldBackgroundColor: Colors.transparent,
+      scaffoldBackgroundColor: const Color(0xFFFAF7F2),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -122,12 +122,12 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = borderRadius ?? AppTheme.radiusLg;
     return Container(
       margin: margin,
-      padding: padding,
       decoration: BoxDecoration(
         color: color ?? AppTheme.glassBg,
-        borderRadius: BorderRadius.circular(borderRadius ?? AppTheme.radiusLg),
+        borderRadius: BorderRadius.circular(radius),
         border: border ?? Border.all(color: AppTheme.glassBorder),
         boxShadow: boxShadow ??
             [
@@ -144,10 +144,13 @@ class GlassContainer extends StatelessWidget {
             ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius ?? AppTheme.radiusLg),
+        borderRadius: BorderRadius.circular(radius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blurStrength, sigmaY: blurStrength),
-          child: child,
+          child: Padding(
+            padding: padding ?? EdgeInsets.zero,
+            child: child,
+          ),
         ),
       ),
     );

@@ -74,6 +74,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
         // 周期切换
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             FilterPill(label: '本周', active: _period == 'week', onTap: () {
               setState(() => _period = 'week');

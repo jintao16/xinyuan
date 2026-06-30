@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:call_log/call_log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/models/area.dart';
@@ -9,7 +13,9 @@ import '../../providers/app_provider.dart';
 import '../../services/availability_service.dart';
 import '../../utils/time_util.dart';
 import '../../widgets/common.dart';
+import '../../widgets/lunar_date_picker.dart';
 import '../../widgets/theme.dart';
+import '../../widgets/time_wheel_picker.dart';
 
 /// 预订表单页（新建/编辑）
 class ReservationFormPage extends StatefulWidget {
@@ -27,8 +33,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   String _date = '';
   String _startTime = '11:00';
   String _endTime = '13:00';
-  String _customerTitle = '';
-  String _customerPhone = '';
+  final _titleController = TextEditingController();
+  final _phoneController = TextEditingController();
   String _remark = '';
   int? _guestCount;
 
@@ -53,6 +59,13 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     }
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadEditing() async {
     final provider = context.read<AppProvider>();
     final r = await provider.reservationDao.getById(widget.editId!);
@@ -62,8 +75,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
         _date = r.date;
         _startTime = r.startTime;
         _endTime = r.endTime;
-        _customerTitle = r.customerTitle;
-        _customerPhone = r.customerPhone;
+        _titleController.text = r.customerTitle;
+        _phoneController.text = r.customerPhone;
         _remark = r.remark;
         _guestCount = r.guestCount;
         if (r.tableId != null) {
@@ -92,6 +105,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             _editing!.status == ReservationStatus.cancelled);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFAF7F2),
       appBar: AppBar(
         title: Text(isEdit ? '预订详情' : '新建预订'),
         actions: [
@@ -225,20 +239,55 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             // 客户信息
             _FieldLabel('客户称呼'),
             TextFormField(
-              initialValue: _customerTitle,
+              controller: _titleController,
               enabled: !isTerminal,
               decoration: const InputDecoration(hintText: '如：张先生、李女士'),
-              onChanged: (v) => _customerTitle = v,
             ),
+            if (!isTerminal) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _TitleSuffixPill(
+                    label: '先生',
+                    onTap: () => _appendTitleSuffix('先生'),
+                  ),
+                  const SizedBox(width: 8),
+                  _TitleSuffixPill(
+                    label: '女士',
+                    onTap: () => _appendTitleSuffix('女士'),
+                  ),
+                ],
+              ),
+            ],
 
             const SizedBox(height: 12),
             _FieldLabel('联系电话（选填）'),
-            TextFormField(
-              initialValue: _customerPhone,
-              enabled: !isTerminal,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(hintText: '手机号'),
-              onChanged: (v) => _customerPhone = v,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _phoneController,
+                    enabled: !isTerminal,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(hintText: '手机号'),
+                  ),
+                ),
+                if (!isTerminal) ...[
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: _pickFromCallLog,
+                      icon: const Icon(CupertinoIcons.phone, size: 16),
+                      label: const Text('读取', style: TextStyle(fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
 
             const SizedBox(height: 12),
@@ -313,9 +362,73 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     );
   }
 
+  void _appendTitleSuffix(String suffix) {
+    final current = _titleController.text.trim();
+    if (current.endsWith(suffix)) return;
+    // 移除已有的"先生"/"女士"后缀
+    String cleaned = current;
+    for (final s in const ['先生', '女士']) {
+      if (cleaned.endsWith(s)) {
+        cleaned = cleaned.substring(0, cleaned.length - s.length).trim();
+        break;
+      }
+    }
+    _titleController.text = cleaned.isEmpty ? suffix : '$cleaned$suffix';
+    _titleController.selection = TextSelection.fromPosition(TextPosition(offset: _titleController.text.length));
+  }
+
+  Future<void> _pickFromCallLog() async {
+    if (!Platform.isAndroid) {
+      showToast(context, '仅支持 Android 设备读取通话记录');
+      return;
+    }
+    // 申请权限
+    final status = await Permission.phone.request();
+    if (!mounted) return;
+    if (!status.isGranted) {
+      showToast(context, '需要电话权限以读取通话记录');
+      return;
+    }
+    try {
+      final entries = await CallLog.get();
+      final list = entries.toList();
+      if (!mounted) return;
+      if (list.isEmpty) {
+        showToast(context, '暂无通话记录');
+        return;
+      }
+      // 按时间倒序取最近 50 条，并按号码去重保留最近一条
+      list.sort((a, b) => (b.timestamp ?? 0).compareTo(a.timestamp ?? 0));
+      final seen = <String>{};
+      final recent = <CallLogEntry>[];
+      for (final e in list) {
+        final num = (e.number ?? '').trim();
+        if (num.isEmpty || seen.contains(num)) continue;
+        seen.add(num);
+        recent.add(e);
+        if (recent.length >= 50) break;
+      }
+      if (!mounted) return;
+      final picked = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => _CallLogSheet(entries: recent),
+      );
+      if (!mounted) return;
+      if (picked != null) {
+        _phoneController.text = picked;
+        _phoneController.selection = TextSelection.fromPosition(TextPosition(offset: picked.length));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '读取失败：$e');
+    }
+  }
+
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await LunarDatePickerDialog.show(
+      context,
       initialDate: DateTime.parse(_date),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
@@ -325,7 +438,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Future<void> _onSave() async {
     // 基础校验
-    if (_customerTitle.trim().isEmpty) {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
       showToast(context, '请填写客户称呼');
       return;
     }
@@ -353,8 +467,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       endTime: _endTime,
       tableId: _mode == 'table' ? _selectedTableId : null,
       areaId: _mode == 'room' ? _selectedAreaId : null,
-      customerTitle: _customerTitle.trim(),
-      customerPhone: _customerPhone.trim(),
+      customerTitle: title,
+      customerPhone: _phoneController.text.trim(),
       guestCount: _guestCount,
       status: _editing?.status ?? ReservationStatus.booked,
       remark: _remark.trim(),
@@ -482,15 +596,9 @@ class _TimePickerField extends StatelessWidget {
   }
 
   Future<void> _pick(BuildContext context) async {
-    final initial = TimeUtil.toMinutes(value);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: initial ~/ 60, minute: initial % 60),
-    );
+    final picked = await CupertinoTimePickerDialog.show(context, initialTime: value);
     if (picked != null) {
-      final hh = picked.hour.toString().padLeft(2, '0');
-      final mm = picked.minute.toString().padLeft(2, '0');
-      onChanged!('$hh:$mm');
+      onChanged!(picked);
     }
   }
 }
@@ -763,6 +871,167 @@ class _RoomSelectorState extends State<_RoomSelector> {
               );
             }(),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 客户称呼后缀快捷按钮
+class _TitleSuffixPill extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _TitleSuffixPill({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.glassBgSoft,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppTheme.glassBorder),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.accent,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 通话记录选择面板
+class _CallLogSheet extends StatelessWidget {
+  final List<CallLogEntry> entries;
+  const _CallLogSheet({required this.entries});
+
+  String _formatTime(int? ts) {
+    if (ts == null) return '';
+    final dt = DateTime.fromMillisecondsSinceEpoch(ts);
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return '刚刚';
+    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
+    if (diff.inDays < 1) return '${diff.inHours}小时前';
+    if (diff.inDays < 7) return '${diff.inDays}天前';
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  String _callTypeLabel(CallType? t) {
+    switch (t) {
+      case CallType.incoming:
+        return '来电';
+      case CallType.outgoing:
+        return '去电';
+      case CallType.missed:
+        return '未接';
+      case CallType.rejected:
+        return '拒接';
+      default:
+        return '-';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAF7F2),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 头部
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+            child: Row(
+              children: [
+                const Text(
+                  '选择通话记录',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(CupertinoIcons.xmark, size: 18, color: AppTheme.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // 列表
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              itemCount: entries.length,
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 60),
+              itemBuilder: (ctx, i) {
+                final e = entries[i];
+                final name = (e.name != null && e.name!.trim().isNotEmpty) ? e.name!.trim() : '未知联系人';
+                final number = (e.number ?? '').trim();
+                return InkWell(
+                  onTap: () => Navigator.pop(context, number),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(CupertinoIcons.person_fill, size: 18, color: AppTheme.accent),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$number  ·  ${_callTypeLabel(e.callType)}  ·  ${_formatTime(e.timestamp)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(CupertinoIcons.phone_arrow_up_right, size: 16, color: AppTheme.textTertiary),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

@@ -7,8 +7,11 @@ import '../../data/models/reservation.dart';
 import '../../providers/app_provider.dart';
 import '../../services/availability_service.dart';
 import '../../utils/time_util.dart';
+import '../../widgets/ambient_background.dart';
 import '../../widgets/common.dart';
+import '../../widgets/lunar_date_picker.dart';
 import '../../widgets/theme.dart';
+import '../../widgets/time_wheel_picker.dart';
 import '../reservation/reservation_form_page.dart';
 
 /// 空闲查询页
@@ -63,6 +66,21 @@ class _AvailabilityPageState extends State<AvailabilityPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const AmbientBackground(),
+          SafeArea(
+            bottom: false,
+            child: _buildContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
     return ListView(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120),
       children: [
@@ -97,10 +115,11 @@ class _AvailabilityPageState extends State<AvailabilityPage> {
                 builder: (context, p, _) {
                   if (p.timeSlots.isEmpty) return const SizedBox.shrink();
                   return SizedBox(
-                    height: 32,
+                    height: 40,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
+                        const SizedBox(width: 4),
                         for (final s in p.timeSlots) ...[
                           FilterPill(
                             label: s.name,
@@ -121,17 +140,24 @@ class _AvailabilityPageState extends State<AvailabilityPage> {
               const Text('用餐人数（选填）', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
               const SizedBox(height: 8),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: TextFormField(
                       controller: _guestController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(hintText: '人数', isDense: true),
+                      decoration: const InputDecoration(hintText: '人数', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                       onChanged: (v) => _guestCount = int.tryParse(v),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  ElevatedButton(onPressed: _loading ? null : _runQuery, child: const Text('查询')),
+                  ElevatedButton(
+                    onPressed: _loading ? null : _runQuery,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    child: const Text('查询'),
+                  ),
                 ],
               ),
             ],
@@ -158,8 +184,8 @@ class _AvailabilityPageState extends State<AvailabilityPage> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await LunarDatePickerDialog.show(
+      context,
       initialDate: DateTime.parse(_date),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
@@ -204,15 +230,9 @@ class _TimeField extends StatelessWidget {
   }
 
   Future<void> _pick(BuildContext context) async {
-    final initial = TimeUtil.toMinutes(value);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: initial ~/ 60, minute: initial % 60),
-    );
+    final picked = await CupertinoTimePickerDialog.show(context, initialTime: value);
     if (picked != null) {
-      final hh = picked.hour.toString().padLeft(2, '0');
-      final mm = picked.minute.toString().padLeft(2, '0');
-      onChanged('$hh:$mm');
+      onChanged(picked);
     }
   }
 }

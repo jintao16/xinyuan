@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'widgets/theme.dart';
+import 'widgets/ambient_background.dart';
 import 'pages/home/home_page.dart';
 import 'pages/reservation/reservation_list_page.dart';
 import 'pages/availability/availability_page.dart';
@@ -32,10 +33,11 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // 1. 环境背景（液态玻璃反射源）
-          const _AmbientBackground(),
+          const AmbientBackground(),
 
           // 2. 内容区域
           SafeArea(
@@ -65,82 +67,6 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 }
 
-/// 环境背景：三个渐变光斑 + 噪点纹理
-class _AmbientBackground extends StatelessWidget {
-  const _AmbientBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // 渐变底色
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFF5F3EF),
-                Color(0xFFFAF7F2),
-                Color(0xFFF0EBE3),
-              ],
-            ),
-          ),
-        ),
-        // 光斑 1 - 金棕色
-        Positioned(
-          top: -80,
-          right: -60,
-          child: _Blob(
-            size: 320,
-            colors: [const Color(0xFFD4915A).withOpacity(0.7), Colors.transparent],
-          ),
-        ),
-        // 光斑 2 - 紫色
-        Positioned(
-          bottom: 100,
-          left: -80,
-          child: _Blob(
-            size: 280,
-            colors: [const Color(0xFFB48CC8).withOpacity(0.5), Colors.transparent],
-          ),
-        ),
-        // 光斑 3 - 蓝绿色
-        Positioned(
-          top: 40,
-          right: 30,
-          child: _Blob(
-            size: 240,
-            colors: [const Color(0xFF78B4C8).withOpacity(0.4), Colors.transparent],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Blob extends StatelessWidget {
-  final double size;
-  final List<Color> colors;
-  const _Blob({required this.size, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(colors: colors),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-        child: const SizedBox(),
-      ),
-    );
-  }
-}
-
 /// 底部浮动液态玻璃 Tab 栏
 class _GlassTabBar extends StatelessWidget {
   final int currentIndex;
@@ -159,11 +85,11 @@ class _GlassTabBar extends StatelessWidget {
     ];
 
     return Container(
-      height: 64,
+      height: 72,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(36),
         border: Border.all(color: Colors.white.withOpacity(0.7)),
         boxShadow: [
           BoxShadow(color: const Color(0xFF1F2650).withOpacity(0.18), blurRadius: 40, offset: const Offset(0, 12)),
@@ -171,11 +97,12 @@ class _GlassTabBar extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(36),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: List.generate(items.length, (i) {
               return Expanded(
                 child: GestureDetector(
@@ -206,25 +133,22 @@ class _TabItem extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Transform.translate(
-            offset: const Offset(0, -12),
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.accent, AppTheme.accentDeep],
-                ),
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.accent.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 8)),
-                ],
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.accent, AppTheme.accentDeep],
               ),
-              child: Icon(icon, color: Colors.white, size: 26),
+              border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+              boxShadow: [
+                BoxShadow(color: AppTheme.accent.withOpacity(0.5), blurRadius: 16, offset: const Offset(0, 6)),
+              ],
             ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
         ],
       );

@@ -11,45 +11,121 @@ import '../reservation/reservation_form_page.dart';
 import '../reservation/reservation_list_page.dart';
 import '../availability/availability_page.dart';
 
-class HomePage extends StatelessWidget {
+const _quickOffsets = [
+  (-1, '昨日'),
+  (0, '今日'),
+  (1, '明日'),
+  (2, '后日'),
+  (3, '大后日'),
+];
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _selectedDate = TimeUtil.today();
+  List<Reservation> _reservations = [];
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadReservations());
+  }
+
+  Future<void> _loadReservations() async {
+    setState(() => _loading = true);
+    final provider = context.read<AppProvider>();
+    final list = await provider.getReservationsByDate(_selectedDate);
+    if (mounted) {
+      setState(() {
+        _reservations = list;
+        _loading = false;
+      });
+    }
+  }
+
+  String _dateLabel() {
+    final today = TimeUtil.today();
+    for (final (offset, label) in _quickOffsets) {
+      if (_selectedDate == TimeUtil.dateOffset(today, offset)) return label;
+    }
+    return _selectedDate;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
-        final today = TimeUtil.today();
-        final upcoming = provider.upcoming;
-
         // 今日时段分布
         final hours = <int, int>{};
-        for (final r in provider.todayReservations) {
+        for (final r in _reservations) {
           final h = int.tryParse(r.startTime.split(':')[0]) ?? 0;
           hours[h] = (hours[h] ?? 0) + 1;
         }
         final maxHour = hours.values.fold(1, (a, b) => a > b ? a : b);
 
+        final bookedCount = _reservations.where((r) => r.status == ReservationStatus.booked).length;
+        final completedCount = _reservations.where((r) => r.status == ReservationStatus.completed).length;
+        final cancelledCount = _reservations.where((r) => r.status == ReservationStatus.cancelled).length;
+
+        // 即将到店：仅当选中今日时显示
+        final isToday = _selectedDate == TimeUtil.today();
+        final upcoming = isToday
+            ? _reservations
+                .where((r) => r.status == ReservationStatus.booked && TimeUtil.isUpcoming(r.startTime))
+                .toList()
+            : <Reservation>[];
+
+        final dateLabel = _dateLabel();
+
         return ListView(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120),
           children: [
             PageHeader(
-              subtitle: '今日 · $today',
+              subtitle: '$dateLabel · ${TimeUtil.formatDateZh(_selectedDate)}',
               title: '鑫源大酒店',
+            ),
+
+            // 日期快捷切换条
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (int i = 0; i < _quickOffsets.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    FilterPill(
+                      label: _quickOffsets[i].$2,
+                      active: _selectedDate == TimeUtil.dateOffset(TimeUtil.today(), _quickOffsets[i].$1),
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = TimeUtil.dateOffset(TimeUtil.today(), _quickOffsets[i].$1);
+                        });
+                        _loadReservations();
+                      },
+                    ),
+                  ],
+                ],
+              ),
             ),
 
             // 统计卡片
             Row(
               children: [
-                _StatCard(value: provider.bookedCountToday, label: '已预订', color: AppTheme.accent),
+                _StatCard(value: bookedCount, label: '已预订', color: AppTheme.accent),
                 const SizedBox(width: 10),
-                _StatCard(value: provider.completedCountToday, label: '已完成', color: AppTheme.success),
+                _StatCard(value: completedCount, label: '已完成', color: AppTheme.success),
                 const SizedBox(width: 10),
-                _StatCard(value: provider.cancelledCountToday, label: '已取消', color: AppTheme.textTertiary),
+                _StatCard(value: cancelledCount, label: '已取消', color: AppTheme.textTertiary),
               ],
             ),
 
             // 即将到店 或 时段分布
-            if (upcoming.isNotEmpty) ...[
+            if (isToday && upcoming.isNotEmpty) ...[
               const SectionTitle('即将到店'),
               ...upcoming.map((r) => _UpcomingCard(
                     time: '${r.startTime} — ${r.endTime}',
@@ -58,7 +134,7 @@ class HomePage extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReservationFormPage(editId: r.id))),
                   )),
             ] else ...[
-              const SectionTitle('今日时段'),
+              SectionTitle(isToday ? '今日时段' : '${dateLabel}时段'),
               GlassContainer(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -113,24 +189,32 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AvailabilityPage())),
                     icon: const Icon(CupertinoIcons.search, size: 18),
                     label: const Text('查询空闲'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentSoft.withOpacity(0.18),
+                      foregroundColor: AppTheme.accentDeep,
+                      side: const BorderSide(color: AppTheme.accent),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                    ),
                   ),
                 ),
               ],
             ),
 
             // 今日全部预订（前5条）
-            if (provider.todayReservations.isNotEmpty) ...[
-              const SectionTitle('今日全部预订'),
-              ...provider.todayReservations.take(5).map((r) => _ReservationCard(
+            if (_reservations.isNotEmpty) ...[
+              SectionTitle(isToday ? '今日全部预订' : '${dateLabel}全部预订'),
+              ..._reservations.take(5).map((r) => _ReservationCard(
                     reservation: r,
                     label: provider.getReservationLabel(r),
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReservationFormPage(editId: r.id))),
                   )),
-              if (provider.todayReservations.length > 5)
+              if (_reservations.length > 5)
                 TextButton(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReservationListPage())),
                   child: const Text('查看全部 →'),
@@ -154,7 +238,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GlassContainer(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         borderRadius: AppTheme.radiusMd,
         child: Column(
           mainAxisSize: MainAxisSize.min,
